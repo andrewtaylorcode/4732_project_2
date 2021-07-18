@@ -1,0 +1,137 @@
+package Project2;
+
+//import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.util.Scanner;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+public class Project_2_4732 {
+
+	static long timeMethodA1Encryption = 0;
+	static long timeMethodA2Encryption = 0;
+	static long timeMethodB1Encryption = 0;
+	static long timeMethodB2Encryption = 0;
+	
+	static long timeMethodA1Decryption = 0;
+	static long timeMethodA2Decryption = 0;
+	static long timeMethodB1Decryption = 0;
+	static long timeMethodB2Decryption = 0;
+	
+	static SecretKey key1;
+	static SecretKey key2;
+	
+	public static boolean decrypt = false;
+	
+	public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException {
+		//Security.addProvider(new BouncyCastleProvider());
+		
+		Scanner scan = new Scanner(System.in);
+		String file1 = "src/Resources/File1";
+		String file2 = "src/Resources/File2";
+		File f1 = new File(file1);
+		File f2 = new File(file2);
+		long f1Size = f1.length();
+		long f2Size = f2.length();
+		
+		//Create and find size of file
+		System.out.println("---------- FILE SIZES ----------");
+		System.out.format("The size of the file 1: %d bytes", f1Size);
+		System.out.println("");
+		System.out.format("The size of the file 2: %d bytes", f2Size);
+		System.out.println("");
+		System.out.println("--------------------------------");
+		
+		//Create cipher 128 bits
+		Cipher cipher1 = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		KeyGenerator keyGenerator1 = KeyGenerator.getInstance("AES");
+		SecureRandom secureRandom1 = new SecureRandom();
+		int keyBitSize1= 128;
+		keyGenerator1.init(keyBitSize1, secureRandom1);
+		SecretKey secretKey1 = keyGenerator1.generateKey();
+		cipher1.init(Cipher.ENCRYPT_MODE, secretKey1);
+		key1 = secretKey1;
+		
+		//Encrypt 128 bits
+		long startTimeA1 = System.currentTimeMillis();
+		byte[] f1b =  Files.readAllBytes(f1.toPath());;
+		byte[] cipherTextA1 = cipher1.doFinal(f1b);
+		try (FileOutputStream stream = new FileOutputStream("src/Resources/FileA1")) {
+		    stream.write(cipherTextA1);
+		}
+		long endTimeA1 = System.currentTimeMillis();
+		timeMethodA1Encryption = endTimeA1 - startTimeA1;
+		
+		long startTimeA2 = System.currentTimeMillis();
+		byte[] f2b =  Files.readAllBytes(f2.toPath());;
+		byte[] cipherTextA2 = cipher1.doFinal(f2b);
+		try (FileOutputStream stream = new FileOutputStream("src/Resources/FileA2")) {
+		    stream.write(cipherTextA2);
+		}
+		long endTimeA2 = System.currentTimeMillis();
+		timeMethodA2Encryption = endTimeA2 - startTimeA2;
+		
+		//create cipher 256 bits
+		Cipher cipher2 = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		KeyGenerator keyGenerator2 = KeyGenerator.getInstance("AES");
+		SecureRandom secureRandom2 = new SecureRandom();
+		int keyBitSize2 = 256;
+		keyGenerator2.init(keyBitSize2, secureRandom2);
+		SecretKey secretKey2 = keyGenerator2.generateKey();
+		cipher2.init(Cipher.ENCRYPT_MODE, secretKey2);
+		key2 = secretKey2;
+		
+		//Encrypt 256 bits
+		long startTimeB1 = System.currentTimeMillis();
+		byte[] f3b =  Files.readAllBytes(f1.toPath());;
+		byte[] cipherTextB1 = cipher2.doFinal(f3b);
+		try (FileOutputStream stream = new FileOutputStream("src/Resources/FileB1")) {
+		    stream.write(cipherTextB1);
+		}
+		long endTimeB1 = System.currentTimeMillis();
+		timeMethodB1Encryption = endTimeB1 - startTimeB1;
+		
+		long startTimeB2 = System.currentTimeMillis();
+		byte[] f4b =  Files.readAllBytes(f2.toPath());;
+		byte[] cipherTextB2 = cipher2.doFinal(f4b);
+		try (FileOutputStream stream = new FileOutputStream("src/Resources/FileB2")) {
+		    stream.write(cipherTextB2);
+		}
+		long endTimeB2 = System.currentTimeMillis();
+		timeMethodB2Encryption = endTimeB2 - startTimeB2;
+
+		System.out.println("----------- ENCRYPTION ---------");
+		System.out.println("It took file 1 at 128 bits " + timeMethodA1Encryption + " milliseconds to encrypt");
+		System.out.println("It took file 2 at 128 bits " + timeMethodA2Encryption + " milliseconds to encrypt");
+		System.out.println("It took file 1 at 256 bits " + timeMethodB1Encryption + " milliseconds to encrypt");
+		System.out.println("It took file 2 at 256 bits " + timeMethodB2Encryption + " milliseconds to encrypt");
+		System.out.println("--------------------------------");
+		
+		System.out.println("---------- CALCULATION ---------");
+		System.out.println("File 1 at 128 bits could encrypt and decrypt " + 1000 / (timeMethodA1Encryption * 2) + " files in a second");
+		System.out.println("File 2 at 128 bits could encrypt and decrypt " + 1000 / (timeMethodA2Encryption * 2) + " files in a second");
+		System.out.print("File 1 at 256 bits could encrypt and decrypt ");
+				if(timeMethodB1Encryption < 1) {
+					System.out.print("More than calcuable");
+				}else{
+					int t = (int) (1000 / (timeMethodB1Encryption * 2));
+					System.out.print(t  + " files in a second\n");}
+		System.out.println("File 2 at 256 bits could encrypt and decrypt " + 1000 / (timeMethodB2Encryption * 2) + " files in a second");
+		System.out.println("--------------------------------");
+	}
+	
+}
